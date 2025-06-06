@@ -76,16 +76,18 @@ $stmt->close();
   </style>
 </head>
 <body>
-<div class="sidebar">
-  <h4 class="text-center mb-4"><i class="fas fa-gavel"></i> Admin Panel</h4>
-  <a href="dashboard.php"><i class="fas fa-home me-2"></i> Dashboard</a>
-  <a href="manage_appeals.php"><i class="fas fa-folder-open me-2"></i> Manage Appeals</a>
-  <a href="add_user.php"><i class="fas fa-user-plus me-2"></i> Add User</a>
-  <a href="manage_users.php"><i class="fas fa-users me-2"></i> Manage Users</a>
-  <a href="profile.php"><i class="fas fa-user-circle me-2"></i> My Profile</a>
-  <a href="view_logs.php"><i class="fas fa-clipboard-list me-2"></i> Activity Logs</a>
-  <a href="../logout.php"><i class="fas fa-sign-out-alt me-2"></i> Logout</a>
-</div>
+<!-- Sidebar -->
+  <div class="sidebar">
+    <h4 class="text-center mb-4"><i class="fas fa-gavel"></i> Admin Panel</h4>
+    <a href="dashboard.php"><i class="fas fa-home me-2"></i> Dashboard</a>
+    <a href="manage_appeals.php"><i class="fas fa-folder-open me-2"></i> Manage Appeals</a>
+    <a href="add_user.php"><i class="fas fa-user-plus me-2"></i> Add User</a>
+    <a href="manage_users.php"><i class="fas fa-users me-2"></i> Manage Users</a>
+    <a href="profile.php"><i class="fas fa-user-circle me-2"></i> My Profile</a>
+    <a href="change_password.php" class="bg-primary"><i class="fas fa-key me-2"></i> Change Password</a>
+    <a href="view_logs.php"><i class="fas fa-clipboard-list me-2"></i> Activity Logs</a>
+    <a href="../logout.php"><i class="fas fa-sign-out-alt me-2"></i> Logout</a>
+  </div>
 
 <div class="topbar">
   <div class="d-flex align-items-center gap-2">

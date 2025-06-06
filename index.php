@@ -44,8 +44,8 @@ if (isset($_POST['login'])) {
             $loginFeedback = "Swal.fire('Login Failed!', 'Incorrect password.', 'error');";
         }
     } else {
-        // Log attempt with unknown email
-        logActivity($conn, 0, 'Failed Login', 'User not found: ' . $email);
+        // Log attempt with unknown email, pass NULL user_id to avoid FK error
+        logActivity($conn, null, 'Failed Login', 'User not found: ' . $email);
 
         $loginFeedback = "Swal.fire('Login Failed!', 'User not found.', 'error');";
     }
@@ -82,7 +82,7 @@ if (isset($_POST['login'])) {
 
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script>
-    <?= $loginFeedback ?? '' ?>
+    <?= $loginFeedback ?>
   </script>
 </body>
 </html>

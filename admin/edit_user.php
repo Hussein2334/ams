@@ -6,7 +6,7 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin') {
 }
 
 include '../db.php';
-include '../functions.php';  // Include the logging functions
+include '../functions.php';
 
 if (!isset($_GET['id'])) {
     echo "<script>alert('No user selected.'); window.location.href='dashboard.php';</script>";
@@ -24,6 +24,16 @@ while ($row = $dept_result->fetch_assoc()) {
     $departments[] = $row;
 }
 $dept_stmt->close();
+
+// Fetch courses
+$courses = [];
+$course_stmt = $conn->prepare("SELECT id, name FROM courses");
+$course_stmt->execute();
+$course_result = $course_stmt->get_result();
+while ($row = $course_result->fetch_assoc()) {
+    $courses[] = $row;
+}
+$course_stmt->close();
 
 // Fetch user details
 $stmt = $conn->prepare("SELECT * FROM users WHERE id = ?");
@@ -61,7 +71,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $update->bind_param("ssissssi", $username, $email, $department_id, $course, $year, $level, $imageName, $user_id);
 
     if ($update->execute()) {
-        // Log the activity with action and details
         $admin_id = $_SESSION['user']['id'];
         $admin_name = $_SESSION['user']['username'];
         $action = "Updated User";
@@ -77,84 +86,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $profileImage = !empty($_SESSION['user']['profile_image']) ? $_SESSION['user']['profile_image'] : 'default.png';
 ?>
 
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Edit User - Admin Dashboard</title>
+   <link rel="icon" href="../image/logo2.png">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <style>
-    body {
-      background-color: #f4f6f9;
-    }
+    body { background-color: #f4f6f9; }
     .sidebar {
-      width: 220px;
-      position: fixed;
-      height: 100%;
-      background: #0d6efd;
-      color: white;
-      padding-top: 20px;
+      width: 220px; position: fixed; height: 100%;
+      background: #0d6efd; color: white; padding-top: 20px;
     }
     .sidebar a {
-      color: white;
-      display: block;
-      padding: 12px 20px;
-      text-decoration: none;
+      color: white; display: block;
+      padding: 12px 20px; text-decoration: none;
     }
-    .sidebar a:hover {
-      background: #084298;
-    }
+    .sidebar a:hover { background: #084298; }
     .topbar {
-      height: 60px;
-      background: #ffffff;
+      height: 60px; background: #ffffff;
       border-bottom: 1px solid #ddd;
-      padding: 0 20px;
-      margin-left: 220px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      padding: 0 20px; margin-left: 220px;
+      display: flex; align-items: center; justify-content: space-between;
     }
     .dashboard-content {
-      margin-left: 220px;
-      padding: 30px;
-      margin-top: 60px;
+      margin-left: 220px; padding: 30px; margin-top: 60px;
     }
     .avatar {
       border-radius: 50%;
-      width: 80px;
-      height: 80px;
+      width: 80px; height: 80px;
       object-fit: cover;
       border: 3px solid #fff;
     }
     @media (max-width: 768px) {
-      .sidebar {
-        position: relative;
-        width: 100%;
-        height: auto;
-      }
-      .topbar, .dashboard-content {
-        margin-left: 0;
-      }
+      .sidebar { position: relative; width: 100%; height: auto; }
+      .topbar, .dashboard-content { margin-left: 0; }
     }
   </style>
 </head>
 <body>
 
 <!-- Sidebar -->
-<div class="sidebar">
-  <h4 class="text-center mb-4"><i class="fas fa-gavel"></i> Admin Panel</h4>
-  <a href="dashboard.php"><i class="fas fa-home me-2"></i> Dashboard</a>
-  <a href="manage_appeals.php"><i class="fas fa-folder-open me-2"></i> Manage Appeals</a>
-  <a href="add_user.php"><i class="fas fa-user-plus me-2"></i> Add User</a>
-  <a href="manage_users.php"><i class="fas fa-users me-2"></i> Manage Users</a>
-  <a href="profile.php"><i class="fas fa-user-circle me-2"></i> My Profile</a>
-  <a href="view_logs.php"><i class="fas fa-clipboard-list me-2"></i> Activity Logs</a>
-  <a href="../logout.php"><i class="fas fa-sign-out-alt me-2"></i> Logout</a>
-</div>
+  <div class="sidebar">
+    <h4 class="text-center mb-4"><i class="fas fa-gavel"></i> Admin Panel</h4>
+    <a href="dashboard.php"><i class="fas fa-home me-2"></i> Dashboard</a>
+    <a href="manage_appeals.php"><i class="fas fa-folder-open me-2"></i> Manage Appeals</a>
+    <a href="add_user.php"><i class="fas fa-user-plus me-2"></i> Add User</a>
+    <a href="manage_user.php"><i class="fas fa-users me-2"></i> Manage Users</a>
+    <a href="profile.php"><i class="fas fa-user-circle me-2"></i> My Profile</a>
+    <a href="change_password.php" class="bg-primary"><i class="fas fa-key me-2"></i> Change Password</a>
+    <a href="view_logs.php"><i class="fas fa-clipboard-list me-2"></i> Activity Logs</a>
+    <a href="../logout.php"><i class="fas fa-sign-out-alt me-2"></i> Logout</a>
+  </div>
 
 <!-- Topbar -->
 <div class="topbar">
@@ -165,7 +150,7 @@ $profileImage = !empty($_SESSION['user']['profile_image']) ? $_SESSION['user']['
   <a href="../logout.php" class="btn btn-outline-danger btn-sm">Logout</a>
 </div>
 
-<!-- Edit Form in Dashboard Layout -->
+<!-- Edit Form -->
 <div class="dashboard-content">
   <div class="card shadow">
     <div class="card-header bg-primary text-white">
@@ -183,12 +168,19 @@ $profileImage = !empty($_SESSION['user']['profile_image']) ? $_SESSION['user']['
         </div>
         <div class="mb-3">
           <label>Course</label>
-          <input type="text" name="course" class="form-control" value="<?= htmlspecialchars($user['course']) ?>" required>
+          <select name="course" class="form-select" required>
+            <option value="">-- Select Course --</option>
+            <?php foreach ($courses as $course): ?>
+              <option value="<?= $course['name'] ?>" <?= $user['course'] == $course['name'] ? 'selected' : '' ?>>
+                <?= htmlspecialchars($course['name']) ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
         </div>
         <div class="mb-3">
           <label>Year</label>
           <select name="year" class="form-select" required>
-            <?php for ($i = 1; $i <= 4; $i++): ?>
+            <?php for ($i = 1; $i <= 3; $i++): ?>
               <option value="<?= $i ?>" <?= $user['year'] == $i ? 'selected' : '' ?>><?= $i ?></option>
             <?php endfor; ?>
           </select>
@@ -220,7 +212,7 @@ $profileImage = !empty($_SESSION['user']['profile_image']) ? $_SESSION['user']['
           <input type="file" name="profile_image" class="form-control mt-2" accept="image/*">
         </div>
         <div class="d-flex justify-content-between">
-          <a href="manage_users.php.php" class="btn btn-secondary">Back</a>
+          <a href="manage_users.php" class="btn btn-secondary">Back</a>
           <button type="submit" class="btn btn-success">Update User</button>
         </div>
       </form>
